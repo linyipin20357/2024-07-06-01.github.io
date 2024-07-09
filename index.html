@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <title>P5</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.2.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.2.0/addons/p5.sound.min.js"></script>
+</head>
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: honeydew;
+}
+canvas {
+    display: block;
+    position: relative;
+    margin: 0 auto;
+    width: 360px;
+    height: 240px;
+}
+.jumbotron {
+    background-color: lightseagreen;
+    color: white;
+}
+</style>
+<script>
+    let dark = false;
+    function goNormal() {
+        dark = false;
+        currentMode = 'rose';
+    }
+    function goDark() {
+        dark = true;
+        currentMode = 'apple';
+    }
+</script>
+<script>
+    // Google 語音辨識模組
+    var say_something = "";
+    function speechRecognition() {
+        if (!("webkitSpeechRecognition" in window)) {
+            alert("本瀏覽器不支援語音辨識，請更換瀏覽器！(Chrome 25 版以上才支援語音辨識)");
+        } else {
+            window._recognition = new webkitSpeechRecognition();
+            window._recognition.continuous = true;
+            window._recognition.interimResults = true;
+            window._recognition.lang = "cmn-Hant-TW";
+            window._recognition.onstart = function() {
+                window._recognition.status = true;
+                console.log("Start recognize...");
+            };
+            window._recognition.onend = function() {
+                console.log("Stop recognize");
+                if (window._recognition.status) 
+                    window._recognition.start();
+            };
+            window._recognition.onresult = function(event) {
+                let result = {};
+                result.resultLength = event.results.length - 1;
+                result.resultTranscript = event.results[result.resultLength][0].transcript;
+                say_something = "？？？";
+                if (event.results[result.resultLength].isFinal === false) {
+                    say_something = result.resultTranscript;
+                    extract_command(say_something);    
+                } else if (event.results[result.resultLength].isFinal === true) {
+                    say_something = result.resultTranscript;
+                    extract_command(say_something);    
+                }
+                document.getElementById("msg").innerHTML = say_something;
+            };
+            window._recognition.start();
+        }
+    }
+    function extract_command(sentence) {
+        if (sentence.indexOf("玫瑰") !== -1) {
+            goNormal();
+        } else if (sentence.indexOf("蘋果") !== -1) {
+            goDark();
+        }
+    }
+    speechRecognition();
+</script>
+<script>
+    let img;
+    let roseImg;
+    let appleImg;
+    let currentMode = 'rose';
+    let flyingObjects = [];
+    
+    function preload() {
+        img = loadImage("rose-apple.jpg");
+        roseImg = loadImage("small-rose.png");
+        appleImg = loadImage("small-apple.png");
+    }
+  
+    function setup() {
+        createCanvas(318, 419);
+        img.resize(width, height);
+        noStroke();
+    }
+    
+    function draw() {
+        background(255);
+        image(img, 0, 0, width, height);
+        
+        // Draw random ellipses based on the original image
+        let ratio = img.height / img.width;
+        for (let i = 1; i <= 10; i++) {
+            let w = random(6, 8);
+            let h = w * ratio;
+            let x = random(0, width - w);
+            let y = random(0, height - h);
+            let c = img.get(x + w / 2, y + h / 2);
+            if (dark) {
+                c = color(c);
+                let r = red(c);
+                let g = green(c);
+                let b = blue(c);
+                c = color(255 - r, 255 - g, 255 - b);
+            }
+            fill(c);
+            ellipse(x + w / 2, y + h / 2, w, h);
+        }
+        
+        // Draw flying objects
+        for (let i = flyingObjects.length - 1; i >= 0; i--) {
+            let obj = flyingObjects[i];
+            image(obj.img, obj.x, obj.y, obj.size, obj.size);
+            obj.y -= obj.speed;
+            if (obj.y < -obj.size) {
+                flyingObjects.splice(i, 1);
+            }
+        }
+        
+        // Add new flying object occasionally
+        if (frameCount % 30 == 0) {
+            let imgToUse = currentMode === 'rose' ? roseImg : appleImg;
+            let size = random(20, 40);
+            let speed = random(1, 3);
+            flyingObjects.push({ img: imgToUse, x: random(width), y: height, size: size, speed: speed });
+        }
+    }
+</script>
+<body>
+    <div class="jumbotron">
+        <h3 align="center">向我訴說 : 你喜歡玫瑰 or 蘋果?</h3>
+    </div>
+    <div class="container">
+        <p id="msg" style="text-align:center">（密語：玫瑰 / 蘋果）</p>
+        <p style="text-align:center">
+            <input type="button" class="btn-warning" value="玫瑰" onclick="goNormal()">
+            <input type="button" class="btn-dark" value="蘋果" onclick="goDark()">
+        </p>
+    </div>
+</body>
+</html>
