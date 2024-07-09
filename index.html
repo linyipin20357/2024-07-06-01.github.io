@@ -30,17 +30,17 @@ canvas {
     color: white;
 }
 </style>
-//<script>
-//    let dark = false;
-//    function goNormal() {
-//        dark = false;
-//        currentMode = 'rose';
-//    }
-//    function goDark() {
-//        dark = true;
-//        currentMode = 'apple';
-//    }
-//</script>
+<script>
+    let dark = false;
+    function goNormal() {
+        dark = false;
+        currentMode = 'rose';
+    }
+    function goDark() {
+        dark = true;
+        currentMode = 'apple';
+    }
+</script>
 <script>
     // Google 語音辨識模組
     var say_something = "";
@@ -110,24 +110,7 @@ canvas {
         background(255);
         image(img, 0, 0, width, height);
         
-        // Draw random ellipses based on the original image
-        let ratio = img.height / img.width;
-        for (let i = 1; i <= 10; i++) {
-            let w = random(6, 8);
-            let h = w * ratio;
-            let x = random(0, width - w);
-            let y = random(0, height - h);
-            let c = img.get(x + w / 2, y + h / 2);
-            if (dark) {
-                c = color(c);
-                let r = red(c);
-                let g = green(c);
-                let b = blue(c);
-                c = color(255 - r, 255 - g, 255 - b);
-            }
-            fill(c);
-            ellipse(x + w / 2, y + h / 2, w, h);
-        }
+
         
         // Draw flying objects
         for (let i = flyingObjects.length - 1; i >= 0; i--) {
